@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import { STORAGE_URL } from "../api/env";
+
 export const exportRutinaPdf = async (rutina) => {
   const doc = new jsPDF();
 
@@ -18,11 +19,12 @@ export const exportRutinaPdf = async (rutina) => {
   let y = 45; // posición inicial de los ejercicios
 
   for (const e of rutina.ejercicios) {
-    // Bloque gris con borde redondeado
     const blockHeight = 50;
+
+    // Bloque gris con borde redondeado
     doc.setDrawColor(220); // borde gris
     doc.setFillColor(245);  // fondo gris suave
-    doc.roundedRect(10, y - 2, 190, blockHeight, 3, 3, 'FD'); // FD = fill + stroke
+    doc.roundedRect(10, y - 2, 190, blockHeight, 3, 3, 'FD');
 
     // Imagen
     if (e.imagen_url) {
@@ -62,12 +64,17 @@ export const exportRutinaPdf = async (rutina) => {
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    if (e.pivot.series && e.pivot.repeticiones)
-      doc.text(`Series x Reps: ${e.pivot.series} x ${e.pivot.repeticiones}`, textX, y + 18);
-    if (e.pivot.peso)
-      doc.text(`Peso: ${e.pivot.peso}kg`, textX, y + 26);
-    if (e.pivot.descanso_segundos)
-      doc.text(`Descanso: ${e.pivot.descanso_segundos}s`, textX, y + 34);
+
+    // Datos del pivot
+    const series = e.pivot?.series ?? "N/A";
+    const repeticionesMin = e.pivot?.repeticiones_min ?? "N/A";
+    const repeticionesMax = e.pivot?.repeticiones_max ?? "N/A";
+    const peso = e.pivot?.peso ?? null;
+    const descanso = e.pivot?.descanso_segundos ?? null;
+
+    doc.text(`Series x Reps: ${series} x ${repeticionesMin}-${repeticionesMax}`, textX, y + 18);
+    if (peso !== null) doc.text(`Peso: ${peso}kg`, textX, y + 26);
+    if (descanso !== null) doc.text(`Descanso: ${descanso}s`, textX, y + 34);
 
     // Avanzar Y
     y += blockHeight;

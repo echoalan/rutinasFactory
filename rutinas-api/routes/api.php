@@ -23,3 +23,4 @@ Route::delete(
 );
 
 Route::delete('/rutinas/{rutina}', [RutinaController::class, 'destroy']);
+Route::delete('/ejercicios/{ejercicio}', [EjercicioController::class, 'destroy']);

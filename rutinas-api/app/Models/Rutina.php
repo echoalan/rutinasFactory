@@ -18,14 +18,15 @@ class Rutina extends Model
             'rutina_ejercicio' // 👈 nombre real de la tabla
         )
         ->withPivot([
-            'id',
-            'series',
-            'repeticiones',
-            'peso',
-            'descanso_segundos',
-            'orden',
-            'dia'
-        ])
+        'id',
+        'series',
+        'repeticiones_min',
+        'repeticiones_max',
+        'peso',
+        'descanso_segundos',
+        'orden',
+        'dia'
+    ])
         ->orderBy('pivot_orden');
     }
 

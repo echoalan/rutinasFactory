@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { getRutinas, crearRutina, eliminarRutina } from "../api/api";
 import EjercicioModal from "../components/EjercicioModal";
+import LoadingButton from "../components/LoadingButton";
 
-export default function RutinasPage({ onSelect }) {
+export default function RutinasPage({ onSelect, mostrarMensaje }) {
   const [rutinas, setRutinas] = useState([]);
   const [nombre, setNombre] = useState("");
   const [objetivo, setObjetivo] = useState("");
@@ -10,17 +11,29 @@ export default function RutinasPage({ onSelect }) {
   const [calentamiento, setCalentamiento] = useState("");
   const [notas, setNotas] = useState("");
   const [openEjercicios, setOpenEjercicios] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingEliminar, setLoadingEliminar] = useState(null); // null o id de la rutina
 
 
 
-  const eliminar = async (id) => {
-    const confirmacion = window.confirm("¿Seguro que quieres eliminar esta rutina?");
-    if (!confirmacion) return;
 
+
+const eliminar = async (id) => {
+  const confirmacion = window.confirm("¿Seguro que quieres eliminar esta rutina?");
+  if (!confirmacion) return;
+
+  try {
+    setLoadingEliminar(id); // comienza el spinner en este id
     await eliminarRutina(id);
-
     setRutinas(rutinas.filter(r => r.id !== id));
-  };
+    mostrarMensaje("Rutina eliminada con éxito", "success");
+  } catch (err) {
+    console.log(err);
+    mostrarMensaje("Error al eliminar la rutina", "error");
+  } finally {
+    setLoadingEliminar(null); // termina el spinner
+  }
+};
 
 
   useEffect(() => {
@@ -28,22 +41,23 @@ export default function RutinasPage({ onSelect }) {
   }, []);
 
   const crear = async () => {
-    if (!nombre || !objetivo || !nivel) return; // campos obligatorios
+    if (!nombre.trim() || !objetivo.trim() || !nivel.trim()) {
+      mostrarMensaje("Por favor completá todos los campos obligatorios", "error");
+      return;
+    }
 
-    const r = await crearRutina({
-      nombre,
-      objetivo,
-      nivel,
-      calentamiento,
-      notas,
-    });
-
-    setRutinas([...rutinas, r]);
-    setNombre("");
-    setObjetivo("");
-    setNivel("");
-    setCalentamiento("");
-    setNotas("");
+    try {
+      setLoading(true); // empieza el loading
+      const r = await crearRutina({ nombre, objetivo, nivel, calentamiento, notas });
+      setRutinas([...rutinas, r]);
+      setNombre(""); setObjetivo(""); setNivel(""); setCalentamiento(""); setNotas("");
+      mostrarMensaje("Rutina creada con éxito", "success");
+    } catch (err) {
+      console.error(err);
+      mostrarMensaje("Error al crear la rutina", "error");
+    } finally {
+      setLoading(false); // termina el loading
+    }
   };
 
   return (
@@ -57,6 +71,7 @@ export default function RutinasPage({ onSelect }) {
       <button 
         
         onClick={() => setOpenEjercicios(true)}
+       
       >
         Ver ejercicios
       </button>
@@ -65,6 +80,7 @@ export default function RutinasPage({ onSelect }) {
       {openEjercicios && (
         <EjercicioModal
           onClose={() => setOpenEjercicios(false)}
+           mostrarMensaje={mostrarMensaje}
           // No pasamos rutinaId → modo libre
         />
       )}
@@ -102,17 +118,24 @@ export default function RutinasPage({ onSelect }) {
 
       </article>
 
-      <button onClick={crear}>Crear rutina</button>
+      <LoadingButton onClick={crear} loading={loading}>
+        Crear rutina
+      </LoadingButton>
 
       <article className="rutinasContainer">
         <h3>Tus rutinas</h3>
           <ul>
           {rutinas.map((r) => (
             <li key={r.id} className="rutinaList">
-              {r.nombre} — {r.objetivo} — {r.nivel}
+              {r.nombre} 
               <div className="containerButtonsRutina">
                 <button onClick={() => onSelect(r.id)}>Ver</button>
-                <button onClick={() => eliminar(r.id)}>Eliminar</button>
+                <LoadingButton
+                  onClick={() => eliminar(r.id)}
+                  loading={loadingEliminar === r.id}
+                >
+                  Eliminar
+                </LoadingButton>
               </div>
             </li>
           ))}

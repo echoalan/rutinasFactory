@@ -44,3 +44,16 @@ export const quitarEjercicioDeRutina = (rutinaId, pivotId) =>
   fetch(`${API_URL}/rutinas/${rutinaId}/ejercicios/${pivotId}`, {
     method: "DELETE",
   }).then(r => r.json());
+
+
+export const eliminarEjercicio = async (id) => {
+  const res = await fetch(`${API_URL}/ejercicios/${id}`, { method: "DELETE" });
+
+  // Evitar error si la respuesta está vacía
+  if (res.status === 204) return { ok: true }; 
+  try {
+    return await res.json();
+  } catch {
+    return { ok: true }; // fallback
+  }
+};

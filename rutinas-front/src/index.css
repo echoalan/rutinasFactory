@@ -15,7 +15,7 @@ body {
 
 /* CONTENEDORES */
 .container {
-  max-width: 700px;
+  max-width: 740px;
   margin: 0 auto;
   background: #020617;
   border-radius: 12px;
@@ -78,10 +78,7 @@ button:disabled {
 ul {
 list-style: none;
     margin-top: .6rem;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: start;
+    
     gap: .4rem;
     overflow-y: auto;
     height: 100%;
@@ -96,6 +93,7 @@ li {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: .4rem;
 }
 
 /* BOTON VOLVER */
@@ -121,7 +119,7 @@ li {
 .modal {
   background: #020617;
   border-radius: 14px;
-  padding: .8rem;
+  padding: .4rem .8rem .8rem.8rem;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
   margin: 28px 0;
   min-width: 700px;
@@ -130,6 +128,12 @@ li {
   display: flex;
   flex-direction: column;
   max-width: 700px;
+}
+
+.modal h3{
+  font-weight: 400;
+  font-size: 1rem;
+  margin: .4rem 0;
 }
 
 .containerFormNewEjercicio{
@@ -186,13 +190,22 @@ li {
   flex-direction: column;
 }
 
+.rutina-info strong{
+}
+
+.casperRutinaInfo{
+  display: flex;
+  flex-direction: column;
+  margin-bottom: .4rem;
+}
 
 
 .serie-peso{
   display: flex;
   justify-content: end;
+  gap: .4rem;
   text-align: end;
-  margin: .4rem 0;
+  margin: 0 0 .4rem 0;
 }
 
 .ejercicio-item{
@@ -201,7 +214,7 @@ li {
 
 
 .ejercicio-item span{
-  font-size: 1.1rem;
+  font-size: .9rem;
 }
 /*rutinas pages*/ 
 
@@ -273,6 +286,7 @@ li {
 
 .rutinaList{
   width: 100%;
+  padding: .4rem;
 }
 
 
@@ -365,12 +379,77 @@ li {
 }
 
 
+
+/* MENSAJES MODERNOS */
+.mensaje {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  color: white;
+  animation: slideIn 0.4s ease;
+  z-index: 1000;
+  cursor: default;
+  min-width: 220px;
+  max-width: 320px;
+}
+
+/* Colores según tipo */
+.mensaje.success {
+  background: linear-gradient(135deg, #22c55e, #16a34a); /* verde moderno */
+}
+
+.mensaje.error {
+  background: linear-gradient(135deg, #ef4444, #b91c1c); /* rojo moderno */
+}
+
+/* Botón de cerrar */
+.cerrarBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.9);
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.cerrarBtn:hover {
+  transform: scale(1.2);
+}
+
+/* Animación de aparición/desaparición */
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Pequeño ícono opcional al inicio del mensaje */
+.mensaje span.icono {
+  font-size: 1.2rem;
+}
+
+
 @media screen and (max-width:386px) {
   .rutina-item{
     min-width: auto;
     flex-direction: column;
     width: 100%;
     align-items: start;
+
   }
 
 

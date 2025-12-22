@@ -17,16 +17,21 @@ class RutinaController extends Controller
         return Rutina::create($request->only('nombre','objetivo','nivel', 'calentamiento', 'notas'));
     }
 
-    public function show(Rutina $rutina)
+   public function show(Rutina $rutina)
     {
-        return $rutina->load('ejercicios');
+        return $rutina->load([
+            'ejercicios' => function ($query) {
+                $query->orderBy('created_at', 'asc');
+            }
+        ]);
     }
 
     public function addEjercicio(Request $request, Rutina $rutina)
     {
         $rutina->ejercicios()->attach($request->ejercicio_id, [
             'series' => $request->series,
-            'repeticiones' => $request->repeticiones,
+            'repeticiones_min' => $request->repeticiones_min,
+            'repeticiones_max' => $request->repeticiones_max,
             'peso' => $request->peso,
             'descanso_segundos' => $request->descanso_segundos,
             'orden' => $request->orden,
@@ -48,17 +53,17 @@ class RutinaController extends Controller
     }
 
     public function destroy(Rutina $rutina)
-{
-    // Eliminar relaciones en la tabla pivote
-    $rutina->ejercicios()->detach();
+    {
+        // Eliminar relaciones en la tabla pivote
+        $rutina->ejercicios()->detach();
 
-    // Eliminar la rutina
-    $rutina->delete();
+        // Eliminar la rutina
+        $rutina->delete();
 
-    return response()->json([
-        'ok' => true,
-        'message' => 'Rutina eliminada correctamente'
-    ]);
-}
+        return response()->json([
+            'ok' => true,
+            'message' => 'Rutina eliminada correctamente'
+        ]);
+    }
 }
 

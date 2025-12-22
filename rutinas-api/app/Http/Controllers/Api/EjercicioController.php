@@ -52,9 +52,32 @@ class EjercicioController extends Controller
         return $ejercicio;
     }
 
-    public function destroy(Ejercicio $ejercicio)
-    {
+   public function destroy(Ejercicio $ejercicio)
+{
+    try {
+        // Quitar relaciones
+        $ejercicio->rutinas()->detach();
+
+        // Eliminar imagen si existe
+        if ($ejercicio->imagen_url) {
+            $path = storage_path('app/public/ejercicios/' . $ejercicio->imagen_url);
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
+
+        // Eliminar el ejercicio
         $ejercicio->delete();
-        return response()->noContent();
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Ejercicio eliminado correctamente'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'ok' => false,
+            'message' => $e->getMessage(), // <- Esto ayuda mucho
+        ], 500);
     }
+}
 }

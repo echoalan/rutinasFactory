@@ -15,16 +15,22 @@ class Ejercicio extends Model
     ];
 
     public function rutinas()
-    {
-        return $this->belongsToMany(Rutina::class)
-            ->withPivot([
-                'series',
-                'repeticiones',
-                'peso',
-                'descanso_segundos',
-                'orden'
-            ])
-            ->withTimestamps();
-    }
+{
+    return $this->belongsToMany(
+        Rutina::class,
+        'rutina_ejercicio' // nombre correcto de la tabla pivote
+    )
+    ->withPivot([
+        'id',
+        'series',
+        'repeticiones_min',
+        'repeticiones_max',
+        'peso',
+        'descanso_segundos',
+        'orden',
+        'dia'
+    ])
+    ->withTimestamps();
+}
 
 }
