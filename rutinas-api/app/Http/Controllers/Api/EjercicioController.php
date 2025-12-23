@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Models\Ejercicio;
+use Illuminate\Support\Facades\Hash;
 
 
 use App\Http\Controllers\Controller;

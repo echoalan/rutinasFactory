@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\Rutina;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Hash;
 class RutinaController extends Controller
 {
     public function index()
@@ -17,7 +17,7 @@ class RutinaController extends Controller
         return Rutina::create($request->only('nombre','objetivo','nivel', 'calentamiento', 'notas'));
     }
 
-   public function show(Rutina $rutina)
+    public function show(Rutina $rutina)
     {
         return $rutina->load([
             'ejercicios' => function ($query) {

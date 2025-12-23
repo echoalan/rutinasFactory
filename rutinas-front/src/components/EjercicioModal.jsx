@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import {
   getEjercicios,
   agregarEjercicioARutina,
@@ -7,6 +7,7 @@ import {
 } from "../api/api";
 import { STORAGE_URL } from "../api/env";
 import LoadingButton from "./LoadingButton";
+import { AuthContext } from "../context/AuthContext";
 
 export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mostrarMensaje }) {
   const [ejercicios, setEjercicios] = useState([]);
@@ -17,13 +18,15 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
   const [loadingAgregar, setLoadingAgregar] = useState({}); // { [ejercicioId]: true }
   const [loadingEliminar, setLoadingEliminar] = useState({});
 
+  const { token } = useContext(AuthContext);
+
   const [busqueda, setBusqueda] = useState("");
 
   // Estado para cada ejercicio: dia, series, repeticiones, peso
   const [ejercicioData, setEjercicioData] = useState({});
 
   useEffect(() => {
-    getEjercicios().then((data) => {
+    getEjercicios(token).then((data) => {
       setEjercicios(data);
 
       // Inicializar estado para cada ejercicio si no existe
@@ -65,7 +68,7 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
         peso: data.peso ? Number(data.peso) : null,
         orden: 1,
         dia: Number(data.dia),
-      });
+      }, token);
 
       // Llamar callback de agregado si existe
       if (onAgregar) onAgregar();
@@ -86,9 +89,9 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
 
     try {
       setLoadingCrear(true);
-      await crearEjercicio(formData);
+      await crearEjercicio(formData, token);
 
-      const data = await getEjercicios();
+      const data = await getEjercicios(token);
       setEjercicios(data);
 
       // Inicializar estado de los nuevos ejercicios
@@ -118,7 +121,7 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
 
     try {
       setLoadingEliminar((prev) => ({ ...prev, [id]: true }));
-      await eliminarEjercicio(id);
+      await eliminarEjercicio(id, token);
       setEjercicios((prev) => prev.filter((e) => e.id !== id));
 
       // ✅ Mostrar mensaje de éxito

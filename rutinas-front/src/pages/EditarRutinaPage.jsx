@@ -1,26 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext  } from "react";
 import { getRutina, quitarEjercicioDeRutina } from "../api/api";
 import EjercicioModal from "../components/EjercicioModal";
 import { exportRutinaPdf } from "../utils/exportRutinaPdf";
 import { STORAGE_URL } from "../api/env";
 import Spinner from "../components/Spinner";
 import LoadingButton from "../components/LoadingButton";
+import { AuthContext } from "../context/AuthContext";
 
 export default function EditarRutinaPage({ rutinaId, onBack, mostrarMensaje }) {
   const [rutina, setRutina] = useState(null);
   const [open, setOpen] = useState(false);
   const [loadingQuitar, setLoadingQuitar] = useState({});
-
+  const { token } = useContext(AuthContext);
+  
   const cargar = async () => {
-    const data = await getRutina(rutinaId);
-    setRutina(data);
-  };
+  const data = await getRutina(rutinaId, token); // pasar token
+  setRutina(data);
+};
 
   useEffect(() => {
     cargar();
-
-    console.log(mostrarMensaje )
-
   }, [rutinaId]);
 
   if (!rutina) {
@@ -57,6 +56,9 @@ export default function EditarRutinaPage({ rutinaId, onBack, mostrarMensaje }) {
         <button onClick={() => setOpen(true)}>+ Agregar ejercicio a la rutina</button>
       </div>
 
+      <h3>Calentamiento:</h3>
+      <p className="calentamientoText">{rutina.calentamiento}</p>
+
       {/* Renderizar por día */}
       {Object.keys(dias).map((dia) => (
         <div key={dia} className="dia-grupo">
@@ -89,9 +91,9 @@ export default function EditarRutinaPage({ rutinaId, onBack, mostrarMensaje }) {
 
                         try {
                           setLoadingQuitar((prev) => ({ ...prev, [e.pivot.id]: true }));
-                          console.log(rutinaId, e.pivot.id)
+                          
 
-                          await quitarEjercicioDeRutina(rutinaId, e.pivot.id);
+                          await quitarEjercicioDeRutina(rutinaId, e.pivot.id, token);
                           await cargar(); // recarga la rutina
                           mostrarMensaje("Ejercicio desvinculado con éxito", "success");
                         } catch (err) {

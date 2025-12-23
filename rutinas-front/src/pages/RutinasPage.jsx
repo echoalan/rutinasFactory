@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { getRutinas, crearRutina, eliminarRutina } from "../api/api";
 import EjercicioModal from "../components/EjercicioModal";
 import LoadingButton from "../components/LoadingButton";
+import { AuthContext } from "../context/AuthContext";
 
 export default function RutinasPage({ onSelect, mostrarMensaje }) {
   const [rutinas, setRutinas] = useState([]);
@@ -13,10 +14,7 @@ export default function RutinasPage({ onSelect, mostrarMensaje }) {
   const [openEjercicios, setOpenEjercicios] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingEliminar, setLoadingEliminar] = useState(null); // null o id de la rutina
-
-
-
-
+  const { token } = useContext(AuthContext);
 
 const eliminar = async (id) => {
   const confirmacion = window.confirm("¿Seguro que quieres eliminar esta rutina?");
@@ -24,7 +22,7 @@ const eliminar = async (id) => {
 
   try {
     setLoadingEliminar(id); // comienza el spinner en este id
-    await eliminarRutina(id);
+    await eliminarRutina(id, token);
     setRutinas(rutinas.filter(r => r.id !== id));
     mostrarMensaje("Rutina eliminada con éxito", "success");
   } catch (err) {
@@ -36,9 +34,14 @@ const eliminar = async (id) => {
 };
 
 
-  useEffect(() => {
-    getRutinas().then(setRutinas);
-  }, []);
+   useEffect(() => {
+    if (token) {
+      getRutinas(token).then(setRutinas).catch(err => {
+        console.error(err);
+        mostrarMensaje("Error al cargar rutinas", "error");
+      });
+    }
+  }, [token]);
 
   const crear = async () => {
     if (!nombre.trim() || !objetivo.trim() || !nivel.trim()) {
@@ -48,7 +51,7 @@ const eliminar = async (id) => {
 
     try {
       setLoading(true); // empieza el loading
-      const r = await crearRutina({ nombre, objetivo, nivel, calentamiento, notas });
+      const r = await crearRutina({ nombre, objetivo, nivel, calentamiento, notas }, token);
       setRutinas([...rutinas, r]);
       setNombre(""); setObjetivo(""); setNivel(""); setCalentamiento(""); setNotas("");
       mostrarMensaje("Rutina creada con éxito", "success");

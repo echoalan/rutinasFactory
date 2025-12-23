@@ -2,86 +2,222 @@ import jsPDF from "jspdf";
 import { STORAGE_URL } from "../api/env";
 
 export const exportRutinaPdf = async (rutina) => {
-  const doc = new jsPDF();
 
-  // Encabezado
-  doc.setFontSize(18);
-  doc.setTextColor(40);
+  console.log(rutina)
+
+  const DIAS = {
+    1: "Lunes",
+    2: "Martes",
+    3: "Miércoles",
+    4: "Jueves",
+    5: "Viernes",
+  };
+
+  const doc = new jsPDF("p", "mm", "a4");
+  let y = 20;
+
+  /* =======================
+     HEADER
+  ======================= */
+  doc.setFillColor(30, 144, 255);
+  doc.rect(0, 0, 210, 28, "F");
+
   doc.setFont("helvetica", "bold");
-  doc.text(rutina.nombre, 14, 20);
+  doc.setFontSize(20);
+  doc.setTextColor(255);
+  doc.text(rutina.nombre, 105, 18, { align: "center" });
 
-  doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(60);
-  doc.text(`Objetivo: ${rutina.objetivo}`, 14, 28);
-  doc.text(`Nivel: ${rutina.nivel}`, 14, 36);
+  doc.setFontSize(12);
+  doc.text(
+    `Objetivo: ${rutina.objetivo} | Nivel: ${rutina.nivel}`,
+    105,
+    25,
+    { align: "center" }
+  );
 
-  let y = 45; // posición inicial de los ejercicios
+  y = 35;
 
-  for (const e of rutina.ejercicios) {
-    const blockHeight = 50;
+  /* =======================
+     INFO BLOCKS
+  ======================= */
+  const renderInfoBlock = (title, text) => {
+    if (!text || text === "-") return;
 
-    // Bloque gris con borde redondeado
-    doc.setDrawColor(220); // borde gris
-    doc.setFillColor(245);  // fondo gris suave
-    doc.roundedRect(10, y - 2, 190, blockHeight, 3, 3, 'FD');
+    const textHeight = doc.getTextDimensions(text, {
+      maxWidth: 170,
+    }).h;
 
-    // Imagen
-    if (e.imagen_url) {
-      try {
-        const res = await fetch(`${STORAGE_URL}/ejercicios/${e.imagen_url}`);
-        const blob = await res.blob();
-        const imgData = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(blob);
-        });
+    const boxHeight = 18 + textHeight;
 
-        // Mantener proporción
-        const maxWidth = 40;
-        const maxHeight = 40;
-        const image = new Image();
-        image.src = imgData;
-        await new Promise((resolve) => (image.onload = resolve));
-        let width = image.width;
-        let height = image.height;
-        const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
-        width *= ratio;
-        height *= ratio;
-
-        doc.addImage(imgData, "JPEG", 14, y, width, height);
-      } catch (err) {
-        console.log("No se pudo cargar imagen:", e.nombre);
-      }
-    }
-
-    // Texto a la derecha de la imagen
-    const textX = 60;
-    doc.setFontSize(14);
-    doc.setTextColor(40);
-    doc.setFont("helvetica", "bold");
-    doc.text(e.nombre, textX, y + 8);
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-
-    // Datos del pivot
-    const series = e.pivot?.series ?? "N/A";
-    const repeticionesMin = e.pivot?.repeticiones_min ?? "N/A";
-    const repeticionesMax = e.pivot?.repeticiones_max ?? "N/A";
-    const peso = e.pivot?.peso ?? null;
-    const descanso = e.pivot?.descanso_segundos ?? null;
-
-    doc.text(`Series x Reps: ${series} x ${repeticionesMin}-${repeticionesMax}`, textX, y + 18);
-    if (peso !== null) doc.text(`Peso: ${peso}kg`, textX, y + 26);
-    if (descanso !== null) doc.text(`Descanso: ${descanso}s`, textX, y + 34);
-
-    // Avanzar Y
-    y += blockHeight;
-    if (y + blockHeight > 290) { // nueva página si se llena
+    if (y + boxHeight > 290) {
       doc.addPage();
       y = 20;
     }
+
+    doc.setFillColor(245);
+    doc.roundedRect(10, y, 190, boxHeight, 3, 3, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(30);
+    doc.text(title, 14, y + 8);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.setTextColor(80);
+    doc.text(text, 14, y + 16, { maxWidth: 170 });
+
+    y += boxHeight + 8;
+  };
+
+  renderInfoBlock("Calentamiento", rutina.calentamiento);
+  renderInfoBlock("Notas", rutina.notas);
+
+  /* =======================
+     AGRUPAR EJERCICIOS
+  ======================= */
+  const ejerciciosPorDia = rutina.ejercicios.reduce((acc, e) => {
+    const dia = e.pivot?.dia ?? 1;
+    if (!acc[dia]) acc[dia] = [];
+    acc[dia].push(e);
+    return acc;
+  }, {});
+
+  const renderDia = (dia) => {
+    if (y > 270) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setFillColor(240);
+    doc.roundedRect(10, y - 4, 190, 10, 2, 2, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.setTextColor(30);
+    doc.text(DIAS[dia], 14, y + 2);
+
+    y += 12;
+  };
+
+  /* =======================
+     EJERCICIOS
+  ======================= */
+  for (const dia of Object.keys(ejerciciosPorDia).sort((a, b) => a - b)) {
+    renderDia(dia);
+
+    for (const e of ejerciciosPorDia[dia]) {
+      const blockHeight = 50;
+
+      if (y + blockHeight > 290) {
+        doc.addPage();
+        y = 20;
+      }
+
+      // Card
+      doc.setFillColor(250);
+      doc.setDrawColor(200);
+      doc.roundedRect(10, y, 190, blockHeight, 3, 3, "FD");
+
+      /* ===== Imagen ===== */
+      const imgBoxSize = 40;
+      const imgX = 14;
+      const imgY = y + 4;
+
+      if (e.imagen_url) {
+        try {
+          const res = await fetch(
+            `${STORAGE_URL}/ejercicios/${e.imagen_url}`
+          );
+          const blob = await res.blob();
+
+          const imgData = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          });
+
+          const image = new Image();
+          image.src = imgData;
+          await new Promise((r) => (image.onload = r));
+
+          const ratio = Math.min(
+            imgBoxSize / image.width,
+            imgBoxSize / image.height,
+            1
+          );
+
+          const imgW = image.width * ratio;
+          const imgH = image.height * ratio;
+
+          const centeredX = imgX + (imgBoxSize - imgW) / 2;
+          const centeredY = imgY + (imgBoxSize - imgH) / 2;
+
+          doc.setDrawColor(180);
+          doc.rect(imgX, imgY, imgBoxSize, imgBoxSize);
+
+          doc.addImage(imgData, "JPEG", centeredX, centeredY, imgW, imgH);
+        } catch (err) {
+          // imagen opcional
+        }
+      }
+
+      /* ===== Texto ===== */
+      const textX = 60;
+      const textY = y + 14;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.setTextColor(30);
+      doc.text(e.nombre, textX, textY);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+      doc.setTextColor(80);
+
+      const {
+        series = "N/A",
+        repeticiones_min = "N/A",
+        repeticiones_max = "N/A",
+        peso,
+        descanso_segundos,
+      } = e.pivot || {};
+
+      doc.text(
+        `Series x Reps: ${series} x ${repeticiones_min}-${repeticiones_max}`,
+        textX,
+        textY + 10
+      );
+
+      if (peso != null) {
+        doc.text(`Peso: ${peso} kg`, textX, textY + 18);
+      }
+
+      if (descanso_segundos != null) {
+        doc.text(
+          `Descanso: ${descanso_segundos} s`,
+          textX,
+          textY + 26
+        );
+      }
+
+      y += blockHeight + 6;
+    }
+  }
+
+  /* =======================
+     FOOTER
+  ======================= */
+  const pageCount = doc.getNumberOfPages();
+
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(10);
+    doc.setTextColor(150);
+    doc.text(`Página ${i} de ${pageCount}`, 105, 295, {
+      align: "center",
+    });
   }
 
   doc.save(`${rutina.nombre}.pdf`);
