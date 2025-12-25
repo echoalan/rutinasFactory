@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Ejercicio extends Model
 {
-
     protected $fillable = [
         'nombre',
         'descripcion',
@@ -15,22 +14,22 @@ class Ejercicio extends Model
     ];
 
     public function rutinas()
-{
-    return $this->belongsToMany(
-        Rutina::class,
-        'rutina_ejercicio' // nombre correcto de la tabla pivote
-    )
-    ->withPivot([
-        'id',
-        'series',
-        'repeticiones_min',
-        'repeticiones_max',
-        'peso',
-        'descanso_segundos',
-        'orden',
-        'dia'
-    ])
-    ->withTimestamps();
-}
-
+    {
+        return $this->belongsToMany(
+            Rutina::class,
+            'rutina_ejercicio'
+        )
+        ->withPivot([
+            'id',
+            'series',
+            'repeticiones_min',
+            'repeticiones_max',
+            'peso',
+            'descanso_segundos',
+            'observacion',
+            'orden',
+            'dia'
+        ])
+        ->withTimestamps();
+    }
 }

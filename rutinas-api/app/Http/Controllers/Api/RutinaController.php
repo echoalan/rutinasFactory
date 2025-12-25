@@ -33,9 +33,10 @@ class RutinaController extends Controller
             'repeticiones_min' => $request->repeticiones_min,
             'repeticiones_max' => $request->repeticiones_max,
             'peso' => $request->peso,
+            'orden' => $request->orden ?? 1,
+            'dia' => $request->dia,
             'descanso_segundos' => $request->descanso_segundos,
-            'orden' => $request->orden,
-            'dia' => $request->dia, // <--- esto faltaba
+            'observacion' => $request->observacion,
         ]);
 
         return response()->json(['ok' => true]);

@@ -277,6 +277,7 @@ li {
 
 .ejercicio-item{
   width: 100%;
+
 }
 
 
@@ -324,8 +325,15 @@ li {
 
 .editRutina{
   display: flex;
+  flex-direction: column;
   align-items: end;
   gap: .5rem;
+}
+
+.contentEditRutina{
+  display: flex;
+  align-items: end;
+  gap: .2rem;
 }
 
 .pIndicador{
@@ -361,6 +369,17 @@ li {
   padding: .4rem;
 }
 
+.containerObsAdd{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.containerObs{
+  display: flex;
+  gap: .4rem;
+}
 
 /* SPINNER */
 .spinner-container {
@@ -574,7 +593,7 @@ li {
     padding: .8rem 0 0 0;
   }
 
-  .editRutina{
+  .contentEditRutina{
     flex-wrap: wrap;
     padding: 0 .8rem .8rem .8rem;
   }

@@ -36,7 +36,9 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
           dia: 1,
           series: 3,
           repeticiones: { min: 10, max: 12 },
-          peso: ""
+          peso: "",
+          descanso_segundos: "",
+          observacion: "",
         };
       });
       setEjercicioData(initData);
@@ -54,21 +56,29 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
       dia: 1,
       series: 3,
       repeticiones: { min: 10, max: 12 },
-      peso: ""
+      peso: "",
+      descanso_segundos: "",
+      observacion: "",
     };
 
     try {
       setLoadingAgregar((prev) => ({ ...prev, [e.id]: true }));
 
-      await agregarEjercicioARutina(rutinaId, {
-        ejercicio_id: e.id,
-        series: Number(data.series),
-        repeticiones_min: Number(data.repeticiones.min),
-        repeticiones_max: Number(data.repeticiones.max),
-        peso: data.peso ? Number(data.peso) : null,
-        orden: 1,
-        dia: Number(data.dia),
-      }, token);
+      await agregarEjercicioARutina(
+        rutinaId,
+        {
+          ejercicio_id: e.id,
+          series: Number(data.series),
+          repeticiones_min: Number(data.repeticiones.min),
+          repeticiones_max: Number(data.repeticiones.max),
+          peso: data.peso ? Number(data.peso) : null,
+          orden: 1,
+          dia: Number(data.dia),
+          descanso_segundos: data.descanso_segundos,
+          observacion: data.observacion,
+        },
+        token
+      );
 
       // Llamar callback de agregado si existe
       if (onAgregar) onAgregar();
@@ -97,7 +107,16 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
       // Inicializar estado de los nuevos ejercicios
       const newData = { ...ejercicioData };
       data.forEach((e) => {
-        if (!newData[e.id]) newData[e.id] = { dia: 1, series: 3, repeticiones: 10, peso: "" };
+       if (!newData[e.id]) {
+        newData[e.id] = {
+          dia: 1,
+          series: 3,
+          repeticiones: { min: 10, max: 12 },
+          peso: "",
+          descanso_segundos: "",
+          observacion: "",
+        };
+      }
       });
       setEjercicioData(newData);
 
@@ -195,7 +214,14 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
 
         <ul>
           {ejerciciosFiltrados.map((e) => {
-            const data = ejercicioData[e.id] || { dia: 1, series: 3, repeticiones: 10, peso: "" };
+            const data = ejercicioData[e.id] || {
+  dia: 1,
+  series: 3,
+  repeticiones: { min: 10, max: 12 },
+  peso: "",
+  descanso_segundos: "",
+  observacion: "",
+};
             return (
               <li
                 key={`ej-${e.id}`}
@@ -211,7 +237,7 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
                 )}
 
                 <span>{e.nombre}</span>
-
+               
                 {!rutinaId && (
                   <LoadingButton
                     onClick={() => handleEliminar(e.id)}
@@ -225,7 +251,8 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
                 {rutinaId && (
                   <div className="editRutina">
                     {/* Selector de día */}
-                    <select
+                    <div className="contentEditRutina">
+                      <select
                       className="selectDia"
                       value={data.dia}
                       onChange={(ev) =>
@@ -247,8 +274,7 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
                       <p className="pIndicador">Series</p>
                       <input
                         type="number"
-                        min={10}
-                        max={12}
+                        min={1}
                         step={1}
                         value={data.series}
                         onChange={(ev) => {
@@ -267,6 +293,7 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
                       <p className="pIndicador">Repes</p>
                       <div style={{ display: "flex", gap: 4 }}>
                         <input
+                        className="inputEditAdd"
                           type="number"
                           min="1"
                           value={data.repeticiones.min}
@@ -283,13 +310,14 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
                             }))
                           }
                           placeholder="Min"
-                          style={{ width: 50 }}
+                          style={{ width: 60 }}
                         />
                         <span>-</span>
                         <input
                           type="number"
                           min={data.repeticiones.min}
                           value={data.repeticiones.max}
+                          className="inputEditAdd"
                           onChange={(ev) =>
                             setEjercicioData((prev) => ({
                               ...prev,
@@ -303,7 +331,7 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
                             }))
                           }
                           placeholder="Max"
-                          style={{ width: 50 }}
+                          style={{ width: 60 }}
                         />
                       </div>
                     </div>
@@ -313,6 +341,7 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
                       <p className="pIndicador">Peso</p>
                       <input
                         type="number"
+                        className="inputEditAdd"
                         min="0"
                         value={data.peso}
                         onChange={(ev) =>
@@ -325,9 +354,37 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
                         style={{ width: 60 }}
                       />
                     </div>
+                    </div>
 
-                    <button onClick={() => agregar(e)}>+</button>
-
+                    <div className="containerObsAdd">
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Observaciones"
+                          value={data.observacion}
+                          onChange={(ev) =>
+                            setEjercicioData((prev) => ({
+                              ...prev,
+                              [e.id]: { ...data, observacion: ev.target.value },
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className="containerObs">
+                          <input
+                            type="text"
+                            placeholder="Descanso (ej: 2 min)"
+                            value={data.descanso_segundos}
+                            onChange={(ev) =>
+                              setEjercicioData((prev) => ({
+                                ...prev,
+                                [e.id]: { ...data, descanso_segundos: ev.target.value },
+                              }))
+                            }
+                          />
+                          <button onClick={() => agregar(e)}>Agregar</button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </li>
