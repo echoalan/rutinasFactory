@@ -14,9 +14,9 @@ export default function EditarRutinaPage({ rutinaId, onBack, mostrarMensaje }) {
   const { token } = useContext(AuthContext);
   
   const cargar = async () => {
-  const data = await getRutina(rutinaId, token); // pasar token
-  setRutina(data);
-};
+    const data = await getRutina(rutinaId, token); // pasar token
+    setRutina(data);    
+  };
 
   useEffect(() => {
     cargar();
@@ -33,6 +33,8 @@ export default function EditarRutinaPage({ rutinaId, onBack, mostrarMensaje }) {
   // Agrupar ejercicios por día
   const dias = {};
   rutina.ejercicios.forEach((e) => {
+
+
     const dia = e.pivot.dia || 1; // por defecto día 1
     if (!dias[dia]) dias[dia] = [];
     dias[dia].push(e);
@@ -77,7 +79,9 @@ export default function EditarRutinaPage({ rutinaId, onBack, mostrarMensaje }) {
 
                   <div className="rutina-info">
                       <strong>{e.nombre}</strong>
-
+                      <p>Grupo Muscular: {e.grupo_muscular}</p>
+                      <p>Observaciones: {e.pivot.observacion}</p>
+                      <p>Descanso: {e.pivot.descanso_segundos}</p>
                       <div className="serie-peso">
                         <p> {e.pivot.series} x {e.pivot.repeticiones_min} - {e.pivot.repeticiones_max } </p>
                         <p>{e.pivot.peso && ` ${e.pivot.peso}kg`}</p>

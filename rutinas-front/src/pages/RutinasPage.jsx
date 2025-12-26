@@ -4,7 +4,7 @@ import EjercicioModal from "../components/EjercicioModal";
 import LoadingButton from "../components/LoadingButton";
 import { AuthContext } from "../context/AuthContext";
 
-export default function RutinasPage({ onSelect, mostrarMensaje }) {
+export default function RutinasPage({ onSelect, mostrarMensaje, closeSesion }) {
   const [rutinas, setRutinas] = useState([]);
   const [nombre, setNombre] = useState("");
   const [objetivo, setObjetivo] = useState("");
@@ -70,14 +70,10 @@ const eliminar = async (id) => {
       
       <div className="nuevarutinaHeader">
          <h2 className="rutinasTitle">Nueva Rutina</h2>
-          {/* Botón para abrir la biblioteca de ejercicios */}
-      <button 
-        
-        onClick={() => setOpenEjercicios(true)}
-       
-      >
-        Ver ejercicios
-      </button>
+        <div className="containerBtnCloseSesion">
+           <button onClick={closeSesion}>Cerrar Sesion</button>
+          <button onClick={() => setOpenEjercicios(true)}>Ver ejercicios</button>
+        </div>
       </div>
 
       {openEjercicios && (

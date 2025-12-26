@@ -43,16 +43,7 @@ function AppContent() {
       )}
 
  {/* BOTÓN DE CERRAR SESIÓN */}
-      <div style={{ display: "flex", justifyContent: "flex-end", padding: "1rem" }}>
-        <button
-          onClick={() => {
-            logout();
-            mostrarMensaje("Sesión cerrada", "success");
-          }}
-        >
-          Cerrar sesión
-        </button>
-      </div>
+     
    
 
       {rutinaId ? (
@@ -60,11 +51,13 @@ function AppContent() {
           rutinaId={rutinaId}
           onBack={() => setRutinaId(null)}
           mostrarMensaje={mostrarMensaje}
+          
         />
       ) : (
         <RutinasPage
           onSelect={setRutinaId}
           mostrarMensaje={mostrarMensaje}
+          closeSesion={logout}
         />
       )}
     </>

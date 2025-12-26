@@ -108,7 +108,7 @@ export const exportRutinaPdf = async (rutina) => {
     renderDia(dia);
 
     for (const e of ejerciciosPorDia[dia]) {
-      const blockHeight = 50;
+      const blockHeight = 100;
 
       if (y + blockHeight > 290) {
         doc.addPage();
@@ -163,46 +163,66 @@ export const exportRutinaPdf = async (rutina) => {
         }
       }
 
-      /* ===== Texto ===== */
-      const textX = 60;
-      const textY = y + 14;
+     /* ===== Texto ===== */
+const textX = 60;
+const textY = y + 14;
 
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(14);
-      doc.setTextColor(30);
-      doc.text(e.nombre, textX, textY);
+doc.setFont("helvetica", "bold");
+doc.setFontSize(14);
+doc.setTextColor(30);
+doc.text(e.nombre, textX, textY);
 
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(12);
-      doc.setTextColor(80);
+doc.setFont("helvetica", "normal");
+doc.setFontSize(12);
+doc.setTextColor(80);
 
-      const {
-        series = "N/A",
-        repeticiones_min = "N/A",
-        repeticiones_max = "N/A",
-        peso,
-        descanso_segundos,
-      } = e.pivot || {};
+const {
+  series = "N/A",
+  repeticiones_min = "N/A",
+  repeticiones_max = "N/A",
+  peso,
+  descanso_segundos,
+  observacion,
+} = e.pivot || {};
 
-      doc.text(
-        `Series x Reps: ${series} x ${repeticiones_min}-${repeticiones_max}`,
-        textX,
-        textY + 10
-      );
+const grupo_muscular = e.grupo_muscular;
 
-      if (peso != null) {
-        doc.text(`Peso: ${peso} kg`, textX, textY + 18);
-      }
+// Series x Reps
+doc.text(
+  `Series x Reps: ${series} x ${repeticiones_min}-${repeticiones_max}`,
+  textX,
+  textY + 10
+);
 
-      if (descanso_segundos != null) {
-        doc.text(
-          `Descanso: ${descanso_segundos} s`,
-          textX,
-          textY + 26
-        );
-      }
+// Peso
+if (peso != null) {
+  doc.text(`Peso: ${peso} kg`, textX, textY + 18);
+}
 
-      y += blockHeight + 6;
+// Grupo muscular
+if (grupo_muscular) {
+  doc.text(`Grupo Muscular: ${grupo_muscular}`, textX, textY + 26);
+}
+
+// Observaciones
+if (observacion) {
+  doc.text(`Observaciones: ${observacion}`, textX, textY + 34);
+}
+
+// Descanso
+if (descanso_segundos) {
+  let descansoText = descanso_segundos;
+  // Si viene en segundos como número, convertir a min/seg
+  if (!isNaN(descanso_segundos)) {
+    const min = Math.floor(descanso_segundos / 60);
+    const seg = descanso_segundos % 60;
+    descansoText = min > 0 ? `${min} min${seg > 0 ? ` ${seg} s` : ""}` : `${seg} s`;
+  }
+  doc.text(`Descanso: ${descansoText}`, textX, textY + 42);
+}
+
+y += blockHeight + 6;
+
     }
   }
 

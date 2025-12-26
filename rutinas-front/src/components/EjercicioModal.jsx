@@ -12,6 +12,8 @@ import { AuthContext } from "../context/AuthContext";
 export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mostrarMensaje }) {
   const [ejercicios, setEjercicios] = useState([]);
   const [nombre, setNombre] = useState("");
+  const [grupoMuscular, setGrupoMuscular] = useState("General");
+
   const [imagen, setImagen] = useState(null);
 
   const [loadingCrear, setLoadingCrear] = useState(false);
@@ -94,7 +96,7 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
 
     const formData = new FormData();
     formData.append("nombre", nombre);
-    formData.append("grupo_muscular", "General");
+    formData.append("grupo_muscular", grupoMuscular || "General");
     if (imagen) formData.append("imagen", imagen);
 
     try {
@@ -107,20 +109,21 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
       // Inicializar estado de los nuevos ejercicios
       const newData = { ...ejercicioData };
       data.forEach((e) => {
-       if (!newData[e.id]) {
-        newData[e.id] = {
-          dia: 1,
-          series: 3,
-          repeticiones: { min: 10, max: 12 },
-          peso: "",
-          descanso_segundos: "",
-          observacion: "",
-        };
-      }
+        if (!newData[e.id]) {
+          newData[e.id] = {
+            dia: 1,
+            series: 3,
+            repeticiones: { min: 10, max: 12 },
+            peso: "",
+            descanso_segundos: "",
+            observacion: "",
+          };
+        }
       });
       setEjercicioData(newData);
 
       setNombre("");
+      setGrupoMuscular("General")
       setImagen(null);
 
       // 🔹 Mostrar mensaje
@@ -159,19 +162,50 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
     e.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  const ejerciciosPorGrupo = {};
+
+  ejerciciosFiltrados.forEach((e) => {
+    const grupo = e.grupo_muscular || "General";
+    if (!ejerciciosPorGrupo[grupo]) {
+      ejerciciosPorGrupo[grupo] = [];
+    }
+    ejerciciosPorGrupo[grupo].push(e);
+  });
+
   return (
     <div className="modal-overlay">
       <div className="modal">
-        <h3>Nuevo Ejercicio</h3>
-
+        {!rutinaId && (
+          <h3>Nuevo Ejercicio</h3>
+        ) }
         {/* Crear ejercicio */}
-
+        
+        {
+          !rutinaId && (
         <div className="containerNuevoEjercicio">
-          <input
-            placeholder="Nuevo ejercicio"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-          />
+          <div className="containerFirstNewEjercicio">
+            <div className="containerInputsNuevoejercicio">
+                <input
+                placeholder="Nombre del ejercicio"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                />
+            </div>
+            <div className="containerGrupoMuscularInputs">
+            <select
+              value={grupoMuscular}
+              onChange={(e) => setGrupoMuscular(e.target.value)}
+              className="selectDia"
+            >
+              <option value="General">General</option>
+              <option value="Pecho">Pecho</option>
+              <option value="Espalda">Espalda</option>
+              <option value="Piernas">Piernas</option>
+              <option value="Hombros">Hombros</option>
+              <option value="Brazos">Brazos</option>
+            </select>
+          </div>
+          </div>
 
           <div className="containerImgPrevBtn">
             <label className="fileInput">
@@ -181,20 +215,22 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
                 onChange={(e) => setImagen(e.target.files[0])}
               />
               <span>📷 Imagen</span>
-            </label>
-          </div>
-
-          <LoadingButton onClick={crear} loading={loadingCrear}>
-            Crear
-          </LoadingButton>
-
+              </label>
+              
+              {imagen && (
+                  <img
+                    src={URL.createObjectURL(imagen)}
+                    className="previewImagen"
+                  />
+                )}
+            </div>
+                  <LoadingButton onClick={crear} loading={loadingCrear}>
+                    Crear
+                  </LoadingButton>
         </div>
-        {imagen && (
-          <img
-            src={URL.createObjectURL(imagen)}
-            className="previewImagen"
-          />
-        )}
+          )
+        }
+        
         {/* Lista de ejercicios existentes */}
 
         <h3>
@@ -208,191 +244,210 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
-
-
         </div>
 
-        <ul>
-          {ejerciciosFiltrados.map((e) => {
-            const data = ejercicioData[e.id] || {
-  dia: 1,
-  series: 3,
-  repeticiones: { min: 10, max: 12 },
-  peso: "",
-  descanso_segundos: "",
-  observacion: "",
-};
-            return (
-              <li
-                key={`ej-${e.id}`}
-                className="ejercicio-item"
-                style={{ display: "flex", alignItems: "center", gap: 8 }}
-              >
-                {e.imagen_url && (
-                  <img
-                    src={`${STORAGE_URL}/ejercicios/${e.imagen_url}`}
-                    alt={e.nombre}
-                    style={{ width: 40, height: 40, borderRadius: 6, objectFit: "cover" }}
-                  />
-                )}
-
-                <span>{e.nombre}</span>
-               
-                {!rutinaId && (
-                  <LoadingButton
-                    onClick={() => handleEliminar(e.id)}
-                    loading={loadingEliminar[e.id]}
+        <article className="articleGrupoM">
+          {Object.keys(ejerciciosPorGrupo).map((grupo) => (
+          <div key={grupo} className="grupoContainer">
+            <h3>{grupo}</h3>
+            <ul>
+              {ejerciciosPorGrupo[grupo].map((e) => {
+                const data = ejercicioData[e.id] || {
+                  dia: 1,
+                  series: 3,
+                  repeticiones: { min: 10, max: 12 },
+                  peso: "",
+                  descanso_segundos: "",
+                  observacion: "",
+                };
+                return (
+                  <li
+                    key={`ej-${e.id}`}
+                    className="ejercicio-item"
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
                   >
-                    Eliminar
-                  </LoadingButton>
-                )}
-
-
-                {rutinaId && (
-                  <div className="editRutina">
-                    {/* Selector de día */}
-                    <div className="contentEditRutina">
-                      <select
-                      className="selectDia"
-                      value={data.dia}
-                      onChange={(ev) =>
-                        setEjercicioData((prev) => ({
-                          ...prev,
-                          [e.id]: { ...data, dia: Number(ev.target.value) },
-                        }))
-                      }
-                    >
-                      <option value={1}>Día 1</option>
-                      <option value={2}>Día 2</option>
-                      <option value={3}>Día 3</option>
-                      <option value={4}>Día 4</option>
-                      <option value={5}>Día 5</option>
-                    </select>
-
-                    {/* Series */}
-                    <div>
-                      <p className="pIndicador">Series</p>
-                      <input
-                        type="number"
-                        min={1}
-                        step={1}
-                        value={data.series}
-                        onChange={(ev) => {
-                          const value = Number(ev.target.value);
-                          setEjercicioData((prev) => ({
-                            ...prev,
-                            [e.id]: { ...data, series: value },
-                          }));
-                        }}
-                        style={{ width: 60 }}
+                    {e.imagen_url && (
+                      <img
+                        src={`${STORAGE_URL}/ejercicios/${e.imagen_url}`}
+                        alt={e.nombre}
+                        style={{ width: 40, height: 40, borderRadius: 6, objectFit: "cover" }}
                       />
-                    </div>
+                    )}
 
-                    {/* Repeticiones */}
-                    <div>
-                      <p className="pIndicador">Repes</p>
-                      <div style={{ display: "flex", gap: 4 }}>
-                        <input
-                        className="inputEditAdd"
-                          type="number"
-                          min="1"
-                          value={data.repeticiones.min}
-                          onChange={(ev) =>
-                            setEjercicioData((prev) => ({
-                              ...prev,
-                              [e.id]: {
-                                ...data,
-                                repeticiones: {
-                                  ...data.repeticiones,
-                                  min: Number(ev.target.value),
-                                },
-                              },
-                            }))
-                          }
-                          placeholder="Min"
-                          style={{ width: 60 }}
-                        />
-                        <span>-</span>
-                        <input
-                          type="number"
-                          min={data.repeticiones.min}
-                          value={data.repeticiones.max}
-                          className="inputEditAdd"
-                          onChange={(ev) =>
-                            setEjercicioData((prev) => ({
-                              ...prev,
-                              [e.id]: {
-                                ...data,
-                                repeticiones: {
-                                  ...data.repeticiones,
-                                  max: Number(ev.target.value),
-                                },
-                              },
-                            }))
-                          }
-                          placeholder="Max"
-                          style={{ width: 60 }}
-                        />
-                      </div>
-                    </div>
+                    <span>{e.nombre}</span>
 
-                    {/* Peso */}
-                    <div>
-                      <p className="pIndicador">Peso</p>
-                      <input
-                        type="number"
-                        className="inputEditAdd"
-                        min="0"
-                        value={data.peso}
-                        onChange={(ev) =>
-                          setEjercicioData((prev) => ({
-                            ...prev,
-                            [e.id]: { ...data, peso: ev.target.value },
-                          }))
-                        }
-                        placeholder="Peso"
-                        style={{ width: 60 }}
-                      />
-                    </div>
-                    </div>
+                    {!rutinaId && (
+                      <LoadingButton
+                        onClick={() => handleEliminar(e.id)}
+                        loading={loadingEliminar[e.id]}
+                      >
+                        Eliminar
+                      </LoadingButton>
+                    )}
 
-                    <div className="containerObsAdd">
-                      <div>
-                        <input
-                          type="text"
-                          placeholder="Observaciones"
-                          value={data.observacion}
-                          onChange={(ev) =>
-                            setEjercicioData((prev) => ({
-                              ...prev,
-                              [e.id]: { ...data, observacion: ev.target.value },
-                            }))
-                          }
-                        />
-                      </div>
-                      <div className="containerObs">
-                          <input
-                            type="text"
-                            placeholder="Descanso (ej: 2 min)"
-                            value={data.descanso_segundos}
+
+                    {rutinaId && (
+                      <div className="editRutina">
+                        {/* Selector de día */}
+                        <div className="contentEditRutina">
+                          <select
+                            className="selectDia"
+                            value={data.dia}
                             onChange={(ev) =>
                               setEjercicioData((prev) => ({
                                 ...prev,
-                                [e.id]: { ...data, descanso_segundos: ev.target.value },
+                                [e.id]: { ...data, dia: Number(ev.target.value) },
                               }))
                             }
-                          />
-                          <button onClick={() => agregar(e)}>Agregar</button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+                          >
+                            <option value={1}>Día 1</option>
+                            <option value={2}>Día 2</option>
+                            <option value={3}>Día 3</option>
+                            <option value={4}>Día 4</option>
+                            <option value={5}>Día 5</option>
+                          </select>
+                          {/* Series */}
+                          <div>
+                            <p className="pIndicador">Series</p>
+                            <input
+                              type="number"
+                              min={1}
+                              step={1}
+                              value={data.series}
+                              onChange={(ev) => {
+                                const value = Number(ev.target.value);
+                                setEjercicioData((prev) => ({
+                                  ...prev,
+                                  [e.id]: { ...data, series: value },
+                                }));
+                              }}
+                              style={{ width: 60 }}
+                            />
+                          </div>
 
-        <button onClick={onClose}>Cerrar</button>
+                          {/* Repeticiones */}
+                          <div>
+                            <p className="pIndicador">Repes</p>
+                            <div style={{ display: "flex", gap: 4 }}>
+                              <input
+                                className="inputEditAdd"
+                                type="number"
+                                min="1"
+                                value={data.repeticiones.min}
+                                onChange={(ev) =>
+                                  setEjercicioData((prev) => ({
+                                    ...prev,
+                                    [e.id]: {
+                                      ...data,
+                                      repeticiones: {
+                                        ...data.repeticiones,
+                                        min: Number(ev.target.value),
+                                      },
+                                    },
+                                  }))
+                                }
+                                placeholder="Min"
+                                style={{ width: 60 }}
+                              />
+                              <span>-</span>
+                              <input
+                                type="number"
+                                min={data.repeticiones.min}
+                                value={data.repeticiones.max}
+                                className="inputEditAdd"
+                                onChange={(ev) =>
+                                  setEjercicioData((prev) => ({
+                                    ...prev,
+                                    [e.id]: {
+                                      ...data,
+                                      repeticiones: {
+                                        ...data.repeticiones,
+                                        max: Number(ev.target.value),
+                                      },
+                                    },
+                                  }))
+                                }
+                                placeholder="Max"
+                                style={{ width: 60 }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Peso */}
+                          <div>
+                            <p className="pIndicador">Peso</p>
+                            <input
+                              type="number"
+                              className="inputEditAdd"
+                              min="0"
+                              value={data.peso}
+                              onChange={(ev) =>
+                                setEjercicioData((prev) => ({
+                                  ...prev,
+                                  [e.id]: { ...data, peso: ev.target.value },
+                                }))
+                              }
+                              placeholder="Peso"
+                              style={{ width: 60 }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="containerObsAdd">
+                          <div>
+                            <input
+                              type="text"
+                              placeholder="Observaciones"
+                              value={data.observacion}
+                              onChange={(ev) =>
+                                setEjercicioData((prev) => ({
+                                  ...prev,
+                                  [e.id]: { ...data, observacion: ev.target.value },
+                                }))
+                              }
+                            />
+                          </div>
+                          <div className="containerObs">
+                            <input
+                              type="text"
+                              placeholder="Descanso (ej: 2 min)"
+                              value={data.descanso_segundos}
+                              onChange={(ev) =>
+                                setEjercicioData((prev) => ({
+                                  ...prev,
+                                  [e.id]: { ...data, descanso_segundos: ev.target.value },
+                                }))
+                              }
+                            />
+                            <button onClick={() => agregar(e)}>Agregar</button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+        </article>
+       <p className="xCloseModal" onClick={onClose}>
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="16" 
+          height="16" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </p>
+
       </div>
     </div>
   );
