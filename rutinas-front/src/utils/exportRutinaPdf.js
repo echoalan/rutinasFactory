@@ -90,15 +90,17 @@ export const exportRutinaPdf = async (rutina) => {
       y = 20;
     }
 
-    doc.setFillColor(240);
-    doc.roundedRect(10, y - 4, 190, 10, 2, 2, "F");
+    // Fondo celeste (igual que header)
+    doc.setFillColor(30, 144, 255);
+    doc.roundedRect(10, y - 6, 190, 12, 3, 3, "F");
 
+    // Texto blanco
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
-    doc.setTextColor(30);
-    doc.text(DIAS[dia], 14, y + 2);
+    doc.setTextColor(255);
+    doc.text(DIAS[dia], 105, y + 2, { align: "center" });
 
-    y += 12;
+    y += 14;
   };
 
   /* =======================
@@ -108,7 +110,7 @@ export const exportRutinaPdf = async (rutina) => {
     renderDia(dia);
 
     for (const e of ejerciciosPorDia[dia]) {
-      const blockHeight = 100;
+      const blockHeight = 130;
 
       if (y + blockHeight > 290) {
         doc.addPage();
@@ -121,7 +123,7 @@ export const exportRutinaPdf = async (rutina) => {
       doc.roundedRect(10, y, 190, blockHeight, 3, 3, "FD");
 
       /* ===== Imagen ===== */
-      const imgBoxSize = 40;
+      const imgBoxSize = 50;
       const imgX = 14;
       const imgY = y + 4;
 
@@ -163,65 +165,65 @@ export const exportRutinaPdf = async (rutina) => {
         }
       }
 
-     /* ===== Texto ===== */
-const textX = 60;
-const textY = y + 14;
+      /* ===== Texto ===== */
+      const textX = 80;
+      const textY = y + 14;
 
-doc.setFont("helvetica", "bold");
-doc.setFontSize(14);
-doc.setTextColor(30);
-doc.text(e.nombre, textX, textY);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.setTextColor(30);
+      doc.text(e.nombre, textX, textY);
 
-doc.setFont("helvetica", "normal");
-doc.setFontSize(12);
-doc.setTextColor(80);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+      doc.setTextColor(80);
 
-const {
-  series = "N/A",
-  repeticiones_min = "N/A",
-  repeticiones_max = "N/A",
-  peso,
-  descanso_segundos,
-  observacion,
-} = e.pivot || {};
+      const {
+        series = "N/A",
+        repeticiones_min = "N/A",
+        repeticiones_max = "N/A",
+        peso,
+        descanso_segundos,
+        observacion,
+      } = e.pivot || {};
 
-const grupo_muscular = e.grupo_muscular;
+      const grupo_muscular = e.grupo_muscular;
 
-// Series x Reps
-doc.text(
-  `Series x Reps: ${series} x ${repeticiones_min}-${repeticiones_max}`,
-  textX,
-  textY + 10
-);
+      // Series x Reps
+      doc.text(
+        `Series x Reps: ${series} x ${repeticiones_min}-${repeticiones_max}`,
+        textX,
+        textY + 10
+      );
 
-// Peso
-if (peso != null) {
-  doc.text(`Peso: ${peso} kg`, textX, textY + 18);
-}
+      // Peso
+      if (peso != null) {
+        doc.text(`Peso: ${peso} kg`, textX, textY + 18);
+      }
 
-// Grupo muscular
-if (grupo_muscular) {
-  doc.text(`Grupo Muscular: ${grupo_muscular}`, textX, textY + 26);
-}
+      // Grupo muscular
+      if (grupo_muscular) {
+        doc.text(`Grupo Muscular: ${grupo_muscular}`, textX, textY + 26);
+      }
 
-// Observaciones
-if (observacion) {
-  doc.text(`Observaciones: ${observacion}`, textX, textY + 34);
-}
+      // Observaciones
+      if (observacion) {
+        doc.text(`Observaciones: ${observacion}`, textX, textY + 34);
+      }
 
-// Descanso
-if (descanso_segundos) {
-  let descansoText = descanso_segundos;
-  // Si viene en segundos como número, convertir a min/seg
-  if (!isNaN(descanso_segundos)) {
-    const min = Math.floor(descanso_segundos / 60);
-    const seg = descanso_segundos % 60;
-    descansoText = min > 0 ? `${min} min${seg > 0 ? ` ${seg} s` : ""}` : `${seg} s`;
-  }
-  doc.text(`Descanso: ${descansoText}`, textX, textY + 42);
-}
+      // Descanso
+      if (descanso_segundos) {
+        let descansoText = descanso_segundos;
+        // Si viene en segundos como número, convertir a min/seg
+        if (!isNaN(descanso_segundos)) {
+          const min = Math.floor(descanso_segundos / 60);
+          const seg = descanso_segundos % 60;
+          descansoText = min > 0 ? `${min} min${seg > 0 ? ` ${seg} s` : ""}` : `${seg} s`;
+        }
+        doc.text(`Descanso: ${descansoText}`, textX, textY + 42);
+      }
 
-y += blockHeight + 6;
+      y += blockHeight + 6;
 
     }
   }

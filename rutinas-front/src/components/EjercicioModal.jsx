@@ -198,6 +198,7 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
               className="selectDia"
             >
               <option value="General">General</option>
+              <option value="Core">Core</option>
               <option value="Pecho">Pecho</option>
               <option value="Espalda">Espalda</option>
               <option value="Piernas">Piernas</option>
@@ -270,7 +271,7 @@ export default function EjercicioModal({ rutinaId = null, onClose, onAgregar, mo
                       <img
                         src={`${STORAGE_URL}/ejercicios/${e.imagen_url}`}
                         alt={e.nombre}
-                        style={{ width: 40, height: 40, borderRadius: 6, objectFit: "cover" }}
+                        style={{ width: 100, height: 80, borderRadius: 6, objectFit: "cover" }}
                       />
                     )}
 
